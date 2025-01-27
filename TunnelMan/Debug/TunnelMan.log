@@ -1,0 +1,8 @@
+﻿  Actor.cpp
+C:\Users\mxcao\OneDrive\MArch Year 1\Summer\CS32\Project4\TunnelMan\Actor.cpp(734,51): warning C4018: '>': signed/unsigned mismatch
+C:\Users\mxcao\OneDrive\MArch Year 1\Summer\CS32\Project4\TunnelMan\Actor.cpp(815,62): warning C4244: 'return': conversion from 'double' to 'int', possible loss of data
+  StudentWorld.cpp
+C:\Users\mxcao\OneDrive\MArch Year 1\Summer\CS32\Project4\TunnelMan\StudentWorld.cpp(49,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+C:\Users\mxcao\OneDrive\MArch Year 1\Summer\CS32\Project4\TunnelMan\StudentWorld.cpp(68,56): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+  Generating Code...
+  TunnelMan.vcxproj -> C:\Users\mxcao\OneDrive\MArch Year 1\Summer\CS32\Project4\Debug\TunnelMan.exe

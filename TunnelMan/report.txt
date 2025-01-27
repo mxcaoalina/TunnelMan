@@ -1,0 +1,275 @@
+1.
+class Actor : public GraphObject {
+
+	//actor's action during the tick. pure virtual to ask each actor to do something each tick
+	//do nothing for base class, will be overriding in subclasses
+	virtual void doSomething() = 0;
+
+	//returns actor's behavior in a given scenario, 
+	//virtual for subclasses overriding
+
+	//determine if actors is always in a stable state and don't have a temp state. 
+	//return true by default so no need to redefine in the subclass if in stable state
+	virtual bool isStable() const;
+
+	//define the type of actor for other function implementation
+	//e.g. calculate the increase score 
+	virtual int ActorType() const = 0;
+
+	//determine if actors is always block the path and can't be stacked upone. 
+	//return false by default so no need to redefine in the subclass
+	//e.g. boulders is unpassible.
+	virtual bool unpassable() const;
+	
+	//Returns true if it can be picked up by player.
+	//Virtual for each individual actor to override, default false
+	//Also aids in identifying pickupable items
+	virtual bool PlayerPickUp() const;
+
+	//Returns true if it can be picked up by protestor, default false
+	//Virtual for each individual actor to override
+	virtual bool ProtesterPickUp() const;
+
+	//plain Accessors that return specifed value
+	bool isdead() const;
+	int  getHealth() const;
+	StudentWorld * getworld() const;
+
+	//mutators
+	//makes the actor invisible, and marks it for deletion
+	bool setdead();
+
+	//behavior when the actor encounters a gold
+	//do nothing by default, virtual for some actors (protester) to override
+	virtual void pickgoldnugget();
+
+	//decrement actor's health variable
+    	//some actors have different requirement when set dead
+   	//virtual for those subclass to override
+	virtual bool decreHealth(const int value);
+
+class TunnelMan : public Actor {
+
+	//handle the player's key input for behavior like: 
+	//moving direction, shooting, picking up gold, etc.
+	virtual void doSomething();
+
+	//TunnelMan is an unstable actor, change to return false
+	virtual bool isStable() const;
+
+	//override base class decrHealth if tunnelman was attacked
+	//and dead if health reaches 0
+	virtual bool decreHealth(const int value); 
+
+	//other plain accessors
+	int getNugget() const;
+	int getSonarCharge() const;
+	int getWater() const;
+
+	//increment the num of those actors by 1
+	void increNugget();
+	void increSonar();
+	void increWater();
+
+	//return the type of actor to tunnelman
+	virtual int ActorType() const;
+
+
+class Earth : public Actor {
+
+	//empty and do nothing
+	virtual void doSomething();
+
+	//return the type of actor to earth
+	virtual int ActorType() const;
+
+
+class Boulders : public Actor {
+
+	//change the state between waiting, falling, and stable
+	//set dead if hit ground after falling
+	virtual void doSomething();
+
+	//boulder is an unpassable actor and return true
+	virtual bool unpassable() const;
+
+	//return the type of actor to boulder
+	virtual int ActorType() const;
+
+
+class Squirt : public Actor {
+
+	//keep moving until hits something or setdead after travel 4 squares
+	virtual void doSomething();
+
+	//return false since squirts could be overlaped
+	virtual bool unpassable() const;
+
+	//return the type of actor to squirt
+	virtual int ActorType() const;
+
+
+class Goodies : public Actor {
+
+	//A pickup's pickup-able status is determined by its state.
+	//This returns that state variable
+	//All pickups are one of the possible states
+	virtual bool PlayerPickUp() const;
+	virtual bool ProtesterPickUp() const;
+
+	//Pickups also have a possible temporary state. will setdead after some ticks fi no action
+	bool Temporary() const;
+
+
+class Barrels : public Goodies {
+
+	//will become visible if tunnelman nearby
+	//and could be pickedup by tunnelman
+	virtual void doSomething();
+
+	//return the type of actor
+	virtual int ActorType() const;
+
+
+class GoldNuggets : public Goodies {
+
+	//will become visible if tunnelman nearby
+	//and could be droped off and pickedup by tunnelman 
+	//and could be picked up by protesters
+	virtual void doSomething();
+
+	//return the type of actor
+	virtual int ActorType() const;
+
+
+class SonarKit : public Goodies {
+
+	//could be pickedup by tunnelman
+	//and increase score
+	virtual void doSomething();
+
+	//return the type of actor
+	virtual int ActorType() const;
+
+
+class WaterPools : public Goodies {
+
+	//could be picked up by TunnelMan, and
+	//increase the content in squirt gun
+	virtual void doSomething();
+	
+	//return the type of actor
+	virtual int ActorType() const;
+
+
+class Protester : public Actor {
+
+	//All Protestors are a generic protestor, since the only difference between them is how they handle
+    	//gold picks ups, their HP, their image, and if they do pathfinding to the player
+    	//Hence the doSomething class essentially handles all aspect of the protestors movement, as set by the spec
+  	//while offering an opportunity for the protestor to path find to the TunnelMan (or not).
+	virtual void doSomething();
+
+	//if protester dead, will in a leaving the oil field state
+	bool leaveField() const;
+
+	//no define type for the base class
+	virtual int ActorType() const = 0;
+
+	//Pathfind is full virtual, up to the individual subclass 
+	//to decide if/how they want to do pathfinding to player
+	virtual bool findPath() = 0;
+
+	//need to leave the field if health <=0
+	virtual bool decreHealth(const int n);
+
+	//return false since protester is constantly moving and unstable
+	virtual bool isStable() const;
+
+	//makes the protester in a leaving state
+	void setLeaving();
+
+	//sets the waiting tick count
+	void setNextTick(int n);
+
+
+
+class RegularProtester : public Protester {
+
+	//return the type of actor to regular protester
+	virtual int ActorType() const;
+
+	//all need function is defined in the base class doSomething()
+	//just return false to skip the find path
+	virtual bool findPath();
+
+	//after protester pick up the gold, set 
+	//the protester to leave the oil field
+	virtual void pickgoldnugget();
+
+
+class HardcoreProtester : public Protester {
+
+	// return the type of actor to hardcore protester
+	virtual int ActorType() const;
+
+	//this returns true if the protestor is moved as a result of pathfinding to the TunnelMan
+    	//false if nothing is done
+	virtual bool findPath();
+
+	//this sets the protestor to wait for an extended period of time
+	virtual void pickgoldnugget();
+
+
+
+2.
+I was tried to first build the base class for all actors, so I spend a lot of time to analyze the similarity functions that could be used in sub actor class as much as possible. However, I found I failed to do so since the informtaion of the actors need to be considered is massive. So I just first implement the TunnelMan class and Earth class. After completed these two classes, the base class of actors was partially implemented.
+
+I first to try to use the inline function to reduce the storage and function processing time. However, it will cause the "unresolved external symbol" error when I tried to access those functions from StudentWorld. It took me hours to debug.
+
+Right now the Goodies are setdead too fast and don't have time to either pick up or dropped off. I don't have much time to refine it.
+
+Also, when the TunnelMan is near the Protester, there's no shouting to the TunnelMan and no decreHealth; it will directly set TunnelMan to dead.
+
+If have more time, I will create a base function for those goodies that can be pickup. They're quite similar.
+
+
+3.
+I tried to write functions for all distance-related staff, like compare distance between two actors, distance to a given point, etc. This can hugely improve the simplicity of the class implementation, expecially for those protesters and setvisible for those goodies when TunnelMan is nearby.
+
+A Protestor base class was instead of having a HardcoreProtestor inherit from a RegularProtestor, as this allows the user of the class to call the Regular Protestor constructor without having to pass extra parameters (such as TID etc) which are not his concern. 
+
+
+4.
+1. TunnelMan
+ - Tunnelman is mainly tested by playing games. The player will print to cerr when any major event occurs (when it dies, when its hp drops, when sonar, water consumption, and when a pickup is found), which enables me to ensure that the status is updated and explained correctly. I will also move the tunneler to all corners and edges of the map to ensure that it does not move beyond the boundary, and move it to each side of the boundary to ensure that it does not stack. Boulders were also allowed to fall on the tunnel workers, and protesters were also allowed to shout to ensure that the tunnel workers properly handled their HP and subsequent deaths. In addition, it is also possible to visually ensure the correct removal of dirt, and when new objects are randomly generated and placed, the sonar can be tested by letting the game update the cerr coordinates, and by letting the sonar display known items within the specified radius.
+
+2. Earth
+  - The main purpose of the earth is to fix itself on the correct coordinates when necessary, and make each point correctly prevent the movement of participants. This is processed and explained as a 2D array of earth objects, and the index corresponds to the actual X and Y positions on the grid to allow logical access.
+
+3. Boulder
+  - Studentworld class is mainly responsible for the distribution and blocking ability of boulders. However, the boulder needs to maintain its three different states and perform appropriate necessary actions. The static state is tested by observing its ability to block and stay in place. The waiting state is tested by observing (i.e., not falling) and cerrs of the terminal. The falling state and its correct handling of its death are tested by dropping it on the tunnel worker, another Boulder, and the dirt array below it. The hard coded protesters are placed on their path.
+
+4. Squirt
+  - Test the spray gun object by firing the spray gun on multiple surfaces, and firing the spray gun to the console when major actions occur (when the spray gun hits a dead corner, death due to loss of motion, and when the spray gun hits a protester), and ensuring that the behavior is defined.
+
+5. Goodies
+  - Generally, the pick ups are tested by ensuring that each pick up performs necessary operations and updates relevant attributes (scores, etc.) at the time of the pick up. The counters are displayed, so it is very simple to ensure that the count is updated correctly. After ensuring that players can pick up items, they are also hard coded and placed in front of the protesters to ensure that they will not interact with them in the default state.
+
+6. Oil
+  - When taking oil, the counter needs to decrease. If the counter drops to 0, the liquid level should end.
+
+7. Sonar
+  - When the sonar is picked up, the sonar counter shall be incremented.
+
+8. Water
+  - When taking water, the water count shall be increased by 5.
+
+9. Protester/Regular Protester)
+ - Protesters were asked to carry out specific activities in different states. The most direct way to ensure this is to provide cerr with information about each activity (each turn, each move), and pause the game execution when unstable events occur at different points, and check the output. If it fails, I will set a breakpoint on the problematic code block and recreate the scene. Most errors involve faulty boundary checks and / or return failures when needed, and there are enough breakpoints to easily check the status of protesters and capture them if necessary. The path finding algorithm is mainly handled by world-class personnel, but by setting the protesters to have only one life and removing the upper limit generated by the protesters, the accuracy of the algorithm can be easily tested even in complex maze settings. The last method is pure observation, by setting a high ceiling on protesters and observing for a long enough time to ensure and capture any strange / unstable movements or unexpected behaviors. Similarly, gold was dropped and the reaction was observed, and the same test was repeated for them in multiple states. Roads are also dug along boulders, and protesters should be able to be blocked and turn in the right direction at intersections when needed.
+
+10. Hardcore Protester
+ -The behavior of the hardcore protesters is largely the same as that of the protesters. The additional path finding algorithm is exactly the same as the algorithm used to make the protesters return to the starting point after they are set to leave, except that different end points are found. When constructing the routing algorithm, it is similar to flooding the console with as much information as possible, and then placing breakpoints in each iteration to ensure that its behavior conforms to expectations and update the data appropriately.
+
+11. StudentWorld
+- Studentworld is quite complicated to test due to the high linkage of its functions to functions in other classes. Actor's functionality actually is highly dependent on how the world act. Neverthelss, I put down breakpoints to check the states of the game world through console output. I can handle the utility and helper functions pretty straight forward by using some simply test cases, but the complex functions like pathfinder/accessible/objectDistribution, their correctness depends on the regularity of the actors' behavior on an actual game. Breakpoints can be put between ticks to make sure each variable is in the right state and updated in the correct way. I also put checks to test out some complicated algorithms to see how they change using cerr when unexpected scenerios occur.
